@@ -22,7 +22,7 @@ Home
      → Comment
      → Add to Watchlist
      → Add to Favourite
-
+          
 ##  Хэрэглэгч Бүртгүүлэх /login/
 
 Login Page
@@ -88,4 +88,4 @@ Empty Data
 - Хэрэглэгч 3-с их даралтгүйгээр зорилгодоо хүрэх
 - Чухал action тод харагдах
 - Error message ойлгомжтой байх
-
+        

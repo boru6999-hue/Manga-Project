@@ -1,0 +1,196 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  wallet      Wallet?
+  payments    Payment[]
+  paybacks    Payback[]        @relation("PaybackByUser")
+  comments    Comment[]
+  likes       Like[]
+  watchlist   Watchlist[]
+  favourites  Favourite[]
+  permissions UserPermission[]
+}
+
+model Wallet {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  balance   Decimal  @default(0.00)
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  manga     Manga[]
+}
+
+model Manga {
+  id          Int      @id @default(autoincrement())
+  categoryId  Int
+  title       String
+  description String?
+  coverImage  String?
+  createdAt   DateTime @default(now())
+
+  category   Category    @relation(fields: [categoryId], references: [id])
+  tags       MangaTag[]
+  favourites Favourite[]
+  comments   Comment[]
+  likes      Like[]
+  watchlists Watchlist[]
+  banners    Banner[]
+
+  @@index([categoryId])
+  @@index([title])
+}
+
+model Tag {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  manga MangaTag[]
+}
+
+model MangaTag {
+  mangaId Int
+  tagId   Int
+
+  manga Manga @relation(fields: [mangaId], references: [id], onDelete: Cascade)
+  tag   Tag   @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([mangaId, tagId])
+  @@index([tagId])
+}
+
+model Favourite {
+  userId    Int
+  mangaId   Int
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  manga Manga @relation(fields: [mangaId], references: [id])
+
+  @@id([userId, mangaId])
+  @@index([mangaId])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  mangaId   Int
+  content   String
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  manga Manga @relation(fields: [mangaId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([mangaId])
+}
+
+model Like {
+  userId    Int
+  mangaId   Int
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  manga Manga @relation(fields: [mangaId], references: [id], onDelete: Cascade)
+
+  @@id([userId, mangaId])
+  @@index([mangaId])
+}
+
+model Watchlist {
+  userId    Int
+  mangaId   Int
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  manga Manga @relation(fields: [mangaId], references: [id], onDelete: Cascade)
+
+  @@id([userId, mangaId])
+  @@index([mangaId])
+}
+
+model Banner {
+  id        Int      @id @default(autoincrement())
+  mangaId   Int
+  imageUrl  String
+  linkUrl   String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  manga Manga @relation(fields: [mangaId], references: [id], onDelete: Cascade)
+
+  @@index([mangaId])
+  @@index([active])
+}
+
+model Payment {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  amount    Decimal
+  method    String? // card, qpay, etc
+  status    String   @default("success") // success|failed|pending
+  createdAt DateTime @default(now())
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paybacks Payback[] @relation("PaymentPaybacks")
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Payback {
+  id        Int      @id @default(autoincrement())
+  paymentId Int
+  userId    Int
+  amount    Decimal
+  reason    String?
+  status    String   @default("pending") // pending|approved|rejected|done
+  createdAt DateTime @default(now())
+
+  payment Payment @relation("PaymentPaybacks", fields: [paymentId], references: [id], onDelete: Cascade)
+  user    User    @relation("PaybackByUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId])
+  @@index([userId])
+}
+
+model Permission {
+  id          Int     @id @default(autoincrement())
+  code        String  @unique // e.g. "ADMIN", "MANGA_CREATE", "BANNER_EDIT"
+  description String?
+
+  users UserPermission[]
+}
+
+model UserPermission {
+  userId       Int
+  permissionId Int
+  createdAt    DateTime @default(now())
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, permissionId])
+  @@index([permissionId])
+}
