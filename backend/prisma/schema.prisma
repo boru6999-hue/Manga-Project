@@ -28,7 +28,7 @@ model Wallet {
   id        Int      @id @default(autoincrement())
   userId    Int      @unique
   balance   Decimal  @default(0.00)
-  updatedAt DateTime @updatedAt
+  updatedAts DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
