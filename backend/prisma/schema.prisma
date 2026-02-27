@@ -1,9 +1,8 @@
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL")
 }
 
-generator client {  
+generator client {
   provider = "prisma-client-js"
 }
 
@@ -114,7 +113,7 @@ model Like {
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   manga Manga @relation(fields: [mangaId], references: [id], onDelete: Cascade)
 
-  @@id([userId, mangaId])
+  @@id([userId, mangaId]) 
   @@index([mangaId])
 }
 
