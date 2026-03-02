@@ -147,14 +147,15 @@ model Payment {
   userId    Int
   amount    Decimal
   method    String? // card, qpay, etc
-  status    String   @default("success") // success|failed|pending
+  status    String   @default("success") // success|failed|78hijuyfrta6exd4t6pending
   createdAt DateTime @default(now())
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([userId])
   @@index([createdAt])
 }
+
 
 model Permission {
   id          Int     @id @default(autoincrement())
