@@ -1,178 +1,164 @@
-datasource db {
-  provider = "mysql"
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
-model User {
-  id        Int      @id @default(autoincrement())
-  username  String   @unique
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-
-  wallet      Wallet?
-  payments    Payment[]
-  comments    Comment[]
-  likes       Like[]
-  watchlist   Watchlist[]
-  favourites  Favourite[]
-  permissions UserPermission[]
+datasource db {
+  provider = "mysql"
 }
 
-model Wallet {
-  id         Int      @id @default(autoincrement())
-  userId     Int      @unique
-  balance    Decimal  @default(0.00)
-  updatedAts DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
-model Category {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  createdAt DateTime @default(now())
-  manga     Manga[]
-}
-
-model Manga {
-  id          Int      @id @default(autoincrement())
-  categoryId  Int
-  title       String
-  description String?
-  coverImage  String?
-  createdAt   DateTime @default(now())
-
-  category   Category    @relation(fields: [categoryId], references: [id])
-  tags       MangaTag[]
-  favourites Favourite[]
-  comments   Comment[]
-  likes      Like[]
-  watchlists Watchlist[]
-  banners    Banner[]
-
-  @@index([categoryId])
-  @@index([title])
-}
-
-model Tag {
-  id   Int    @id @default(autoincrement())
-  name String @unique
-
-  manga MangaTag[]
-}
-
-model MangaTag {
-  mangaId Int
-  tagId   Int
-
-  manga Manga @relation(fields: [mangaId], references: [id], onDelete: Cascade)
-  tag   Tag   @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([mangaId, tagId])
-  @@index([tagId])
-}
-
-model Favourite {
-  userId    Int
-  mangaId   Int
-  createdAt DateTime @default(now())
-
-  user  User  @relation(fields: [userId], references: [id])
-  manga Manga @relation(fields: [mangaId], references: [id])
-
-  @@id([userId, mangaId])
-  @@index([mangaId])
-}
-
-model Comment {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  mangaId   Int
-  content   String
-  createdAt DateTime @default(now())
-
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  manga Manga @relation(fields: [mangaId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([mangaId])
-}
-
-model Like {
-  userId    Int
-  mangaId   Int
-  createdAt DateTime @default(now())
-
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  manga Manga @relation(fields: [mangaId], references: [id], onDelete: Cascade)
-
-  @@id([userId, mangaId]) 
-  @@index([mangaId])
-}
-
-model Watchlist {
-  userId    Int
-  mangaId   Int
-  createdAt DateTime @default(now())
-
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  manga Manga @relation(fields: [mangaId], references: [id], onDelete: Cascade)
-
-  @@id([userId, mangaId])
-  @@index([mangaId])
-}
-
-model Banner {
+model banner {
   id        Int      @id @default(autoincrement())
   mangaId   Int
   imageUrl  String
   linkUrl   String?
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
+  manga     manga    @relation(fields: [mangaId], references: [id], onDelete: Cascade, map: "Banner_mangaId_fkey")
 
-  manga Manga @relation(fields: [mangaId], references: [id], onDelete: Cascade)
-
-  @@index([mangaId])
-  @@index([active])
+  @@index([active], map: "Banner_active_idx")
+  @@index([mangaId], map: "Banner_mangaId_idx")
 }
 
-model Payment {
+model category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique(map: "Category_name_key")
+  createdAt DateTime @default(now())
+  manga     manga[]
+}
+
+model comment {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  mangaId   Int
+  content   String
+  createdAt DateTime @default(now())
+  manga     manga    @relation(fields: [mangaId], references: [id], onDelete: Cascade, map: "Comment_mangaId_fkey")
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Comment_userId_fkey")
+
+  @@index([mangaId], map: "Comment_mangaId_idx")
+  @@index([userId], map: "Comment_userId_idx")
+}
+
+model favourite {
+  userId    Int
+  mangaId   Int
+  createdAt DateTime @default(now())
+  manga     manga    @relation(fields: [mangaId], references: [id], map: "Favourite_mangaId_fkey")
+  user      user     @relation(fields: [userId], references: [id], map: "Favourite_userId_fkey")
+
+  @@id([userId, mangaId])
+  @@index([mangaId], map: "Favourite_mangaId_idx")
+}
+
+model like {
+  userId    Int
+  mangaId   Int
+  createdAt DateTime @default(now())
+  manga     manga    @relation(fields: [mangaId], references: [id], onDelete: Cascade, map: "Like_mangaId_fkey")
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Like_userId_fkey")
+
+  @@id([userId, mangaId])
+  @@index([mangaId], map: "Like_mangaId_idx")
+}
+
+model manga {
+  id          Int         @id @default(autoincrement())
+  categoryId  Int
+  coverImage  String?
+  createdAt   DateTime    @default(now())
+  description String?
+  title       String
+  banner      banner[]
+  comment     comment[]
+  favourite   favourite[]
+  like        like[]
+  category    category    @relation(fields: [categoryId], references: [id], map: "Manga_categoryId_fkey")
+  mangatag    mangatag[]
+  watchlist   watchlist[]
+
+  @@index([categoryId], map: "Manga_categoryId_idx")
+  @@index([title], map: "Manga_title_idx")
+}
+
+model mangatag {
+  mangaId Int
+  tagId   Int
+  manga   manga @relation(fields: [mangaId], references: [id], onDelete: Cascade, map: "MangaTag_mangaId_fkey")
+  tag     tag   @relation(fields: [tagId], references: [id], onDelete: Cascade, map: "MangaTag_tagId_fkey")
+
+  @@id([mangaId, tagId])
+  @@index([tagId], map: "MangaTag_tagId_idx")
+}
+
+model payment {
   id        Int      @id @default(autoincrement())
   userId    Int
   amount    Decimal
-  method    String? // card, qpay, etc
-  status    String   @default("success") // success|failed|78hijuyfrta6exd4t6pending
+  method    String?
+  status    String   @default("success")
   createdAt DateTime @default(now())
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Payment_userId_fkey")
 
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([createdAt])
+  @@index([createdAt], map: "Payment_createdAt_idx")
+  @@index([userId], map: "Payment_userId_idx")
 }
 
-
-model Permission {
-  id          Int     @id @default(autoincrement())
-  code        String  @unique // e.g. "ADMIN", "MANGA_CREATE", "BANNER_EDIT"
-  description String?
-
-  users UserPermission[]
+model permission {
+  id             Int              @id @default(autoincrement())
+  code           String           @unique(map: "Permission_code_key")
+  description    String?
+  userpermission userpermission[]
 }
 
-model UserPermission {
+model tag {
+  id       Int        @id @default(autoincrement())
+  name     String     @unique(map: "Tag_name_key")
+  mangatag mangatag[]
+}
+
+model user {
+  id             Int              @id @default(autoincrement())
+  email          String           @unique(map: "User_email_key")
+  createdAt      DateTime         @default(now())
+  password       String
+  username       String           @unique(map: "User_username_key")
+  comment        comment[]
+  favourite      favourite[]
+  like           like[]
+  payment        payment[]
+  userpermission userpermission[]
+  wallet         wallet?
+  watchlist      watchlist[]
+}
+
+model userpermission {
   userId       Int
   permissionId Int
-  createdAt    DateTime @default(now())
-
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  permission   permission @relation(fields: [permissionId], references: [id], onDelete: Cascade, map: "UserPermission_permissionId_fkey")
+  user         user       @relation(fields: [userId], references: [id], onDelete: Cascade, map: "UserPermission_userId_fkey")
 
   @@id([userId, permissionId])
-  @@index([permissionId])
+  @@index([permissionId], map: "UserPermission_permissionId_idx")
+}
+
+model wallet {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @unique(map: "Wallet_userId_key")
+  balance    Decimal  @default(0.000000000000000000000000000000)
+  updatedAts DateTime
+  user       user     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Wallet_userId_fkey")
+
+  @@index([userId], map: "Wallet_userId_idx")
+}
+
+model watchlist {
+  userId    Int
+  mangaId   Int
+  createdAt DateTime @default(now())
+  manga     manga    @relation(fields: [mangaId], references: [id], onDelete: Cascade, map: "Watchlist_mangaId_fkey")
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Watchlist_userId_fkey")
+
+  @@id([userId, mangaId])
+  @@index([mangaId], map: "Watchlist_mangaId_idx")
 }
