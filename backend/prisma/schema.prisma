@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  connection_limit = 100
 }
 
 datasource db {
@@ -121,7 +122,7 @@ model user {
   email          String           @unique(map: "User_email_key")
   createdAt      DateTime         @default(now())
   password       String
-  username       String           @unique(map: "User_username_key")
+  Username       String           @unique(map: "User_username_key")
   comment        comment[]
   favourite      favourite[]
   like           like[]
