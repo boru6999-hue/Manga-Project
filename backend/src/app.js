@@ -1,5 +1,7 @@
+console.log("app.js start");
 import express from "express";
 import cors from "cors";
+
 
 import authRoutes from "./routes/auth.routes.js";
 import favouriteRoutes from "./routes/favourite.routes.js";
@@ -15,6 +17,8 @@ app.use(cors());
 app.use(express.json());
 app.use("/api/tags", tagRouter);
 
+console.log("routes imported");
+
 // Health check
 app.get("/health", (req, res) => res.json({ ok: true }));
 
@@ -29,4 +33,5 @@ app.use("/api/categories", categoryRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
+console.log("app.js ready");
 export default app;
